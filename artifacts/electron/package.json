@@ -1,0 +1,22 @@
+{
+  "name": "@workspace/electron",
+  "version": "0.1.0",
+  "description": "Agavity — Context Engine for Developers",
+  "author": "Gabriel Freitas",
+  "license": "MIT",
+  "main": "dist/main.js",
+  "private": true,
+  "scripts": {
+    "dev": "tsc && electron dist/main.js",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/api-server": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "electron": "^35.1.0",
+    "typescript": "~5.9.3"
+  }
+}
