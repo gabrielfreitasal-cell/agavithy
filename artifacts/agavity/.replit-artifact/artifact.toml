@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Agavity"
+version = "1.0.0"
+id = "artifacts/agavity"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23706
+
+[services.development]
+run = "pnpm --filter @workspace/agavity run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/agavity", "run", "build" ]
+publicDir = "artifacts/agavity/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23706"
+BASE_PATH = "/"

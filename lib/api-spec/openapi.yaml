@@ -3,20 +3,28 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Agavity — Code Snippet Manager API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: snippets
+    description: Code snippet operations
+  - name: tags
+    description: Tag operations
+  - name: clipboard
+    description: Clipboard capture operations
+  - name: enrichment
+    description: Semantic enrichment operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +32,411 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /snippets:
+    get:
+      operationId: listSnippets
+      tags: [snippets]
+      summary: List all snippets with optional filters
+      parameters:
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: source_app
+          in: query
+          schema:
+            type: string
+        - name: pinned
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of snippets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Snippet"
+    post:
+      operationId: createSnippet
+      tags: [snippets]
+      summary: Create a new snippet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SnippetInput"
+      responses:
+        "201":
+          description: Created snippet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Snippet"
+
+  /snippets/stats:
+    get:
+      operationId: getSnippetStats
+      tags: [snippets]
+      summary: Get dashboard statistics — total counts, top languages, top source apps
+      responses:
+        "200":
+          description: Snippet statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SnippetStats"
+
+  /snippets/recent:
+    get:
+      operationId: listRecentSnippets
+      tags: [snippets]
+      summary: Get the most recently captured snippets
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Recent snippets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Snippet"
+
+  /snippets/pinned:
+    get:
+      operationId: listPinnedSnippets
+      tags: [snippets]
+      summary: Get all pinned snippets
+      responses:
+        "200":
+          description: Pinned snippets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Snippet"
+
+  /snippets/{id}:
+    get:
+      operationId: getSnippet
+      tags: [snippets]
+      summary: Get a single snippet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Snippet detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Snippet"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateSnippet
+      tags: [snippets]
+      summary: Update a snippet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SnippetUpdate"
+      responses:
+        "200":
+          description: Updated snippet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Snippet"
+    delete:
+      operationId: deleteSnippet
+      tags: [snippets]
+      summary: Delete a snippet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /snippets/{id}/pin:
+    patch:
+      operationId: toggleSnippetPin
+      tags: [snippets]
+      summary: Toggle pinned state of a snippet
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated snippet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Snippet"
+
+  /snippets/{id}/enrich:
+    post:
+      operationId: enrichSnippet
+      tags: [enrichment]
+      summary: Trigger semantic enrichment (title, tags, language detection) for a snippet via local LLM
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Enriched snippet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Snippet"
+
+  /tags:
+    get:
+      operationId: listTags
+      tags: [tags]
+      summary: List all tags with usage counts
+      responses:
+        "200":
+          description: All tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tag"
+
+  /clipboard/capture:
+    post:
+      operationId: captureClipboard
+      tags: [clipboard]
+      summary: Capture clipboard content as a new snippet (with optional source context)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClipboardCapture"
+      responses:
+        "201":
+          description: Captured snippet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Snippet"
+
+  /clipboard/status:
+    get:
+      operationId: getClipboardStatus
+      tags: [clipboard]
+      summary: Get clipboard monitoring status
+      responses:
+        "200":
+          description: Clipboard monitor status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClipboardStatus"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    Snippet:
+      type: object
+      required: [id, content, createdAt, updatedAt, isPinned]
+      properties:
+        id:
+          type: integer
+        title:
+          type: ["string", "null"]
+        content:
+          type: string
+        language:
+          type: ["string", "null"]
+        sourceApp:
+          type: ["string", "null"]
+        sourceUrl:
+          type: ["string", "null"]
+        isPinned:
+          type: boolean
+        isEnriched:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    SnippetInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+        title:
+          type: string
+        language:
+          type: string
+        sourceApp:
+          type: string
+        sourceUrl:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    SnippetUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        language:
+          type: string
+        sourceApp:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        isPinned:
+          type: boolean
+
+    SnippetStats:
+      type: object
+      required: [total, pinned, enriched, byLanguage, bySourceApp, byTag]
+      properties:
+        total:
+          type: integer
+        pinned:
+          type: integer
+        enriched:
+          type: integer
+        byLanguage:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountByLabel"
+        bySourceApp:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountByLabel"
+        byTag:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountByLabel"
+
+    CountByLabel:
+      type: object
+      required: [label, count]
+      properties:
+        label:
+          type: string
+        count:
+          type: integer
+
+    Tag:
+      type: object
+      required: [name, count]
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+
+    ClipboardCapture:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+        sourceApp:
+          type: string
+        sourceUrl:
+          type: string
+        autoEnrich:
+          type: boolean
+          default: true
+
+    ClipboardStatus:
+      type: object
+      required: [isMonitoring, capturedCount]
+      properties:
+        isMonitoring:
+          type: boolean
+        capturedCount:
+          type: integer
+        lastCapturedAt:
+          type: ["string", "null"]
