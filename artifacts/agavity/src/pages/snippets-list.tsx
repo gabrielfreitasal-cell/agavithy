@@ -99,11 +99,11 @@ export default function SnippetsList() {
                         </Badge>
                       )}
                       <div className="flex gap-1">
-                        {snippet.tags?.slice(0, 3).map(tag => (
+                        {[...new Set(snippet.tags ?? [])].slice(0, 3).map(tag => (
                           <Badge key={tag} variant="secondary" className="font-mono text-[10px]">#{tag}</Badge>
                         ))}
-                        {(snippet.tags?.length || 0) > 3 && (
-                          <Badge variant="secondary" className="font-mono text-[10px]">+{snippet.tags!.length - 3}</Badge>
+                        {([...new Set(snippet.tags ?? [])].length) > 3 && (
+                          <Badge variant="secondary" className="font-mono text-[10px]">+{[...new Set(snippet.tags ?? [])].length - 3}</Badge>
                         )}
                       </div>
                     </div>

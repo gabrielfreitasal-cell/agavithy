@@ -158,7 +158,7 @@ export default function SnippetDetail() {
             {snippet.language}
           </Badge>
         )}
-        {snippet.tags?.map(tag => (
+        {[...new Set(snippet.tags ?? [])].map(tag => (
           <Badge key={tag} variant="secondary" className="font-mono text-sm py-1">#{tag}</Badge>
         ))}
       </div>
