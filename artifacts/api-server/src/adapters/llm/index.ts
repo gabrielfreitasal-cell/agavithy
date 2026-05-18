@@ -1,0 +1,1 @@
+export { OllamaEnrichmentAdapter } from "./OllamaEnrichmentAdapter";
