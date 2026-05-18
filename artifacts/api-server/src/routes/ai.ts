@@ -116,15 +116,18 @@ Com base nesses snippets, gere um RESUMO DO DIA estruturado em markdown com:
 
 Seja conciso e objetivo. Foque no que é realmente relevante.`;
 
-    // ── Seleciona provider: antigravity → gemini → ollama
-    // "auto" tenta nessa ordem conforme disponibilidade
+    // ── Seleciona provider (obrigatório)
     let summary = "";
     let usedProvider = "";
 
-    const resolvedProvider = provider ?? "auto";
+    const resolvedProvider = provider ?? "required";
     const hasGeminiKey = Boolean(GEMINI_API_KEY);
 
-    if (resolvedProvider === "antigravity" || (resolvedProvider === "auto" && hasGeminiKey)) {
+    if (resolvedProvider === "required") {
+      return res.status(400).json({
+        error: "Informe o provider: 'antigravity', 'gemini' ou 'ollama'",
+      });
+    } else if (resolvedProvider === "antigravity") {
       // Tier 1 🧠 — Antigravity (Gemini 2.5 Pro)
       summary = await generateWithGemini(prompt, PROVIDERS.antigravity);
       usedProvider = `antigravity/${PROVIDERS.antigravity}`;
